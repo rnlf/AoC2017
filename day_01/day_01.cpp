@@ -1,27 +1,28 @@
+#include <memory>
 #include <cctype>
 #include <vector>
-#include <cstdio>
 #include <string>
+#include "../timer.h"
+#include "../fileread.h"
 
 
 int main(int argc, char** argv) {
-  FILE* f = fopen(argv[1], "r");
+  Timer timer;
+
+  auto file = read_file(argv[1]);
+
   std::vector<unsigned> data;
+  data.reserve(file.size());
 
-  for(;;) {
-    int c = fgetc(f);
-    if(c == EOF || !isdigit(c)) {
-      break;
-    }
-    data.push_back(c - '0');
+  for(int i = 0; file[i] != '\n'; ++i) {
+    data.push_back(file[i] - '0');
   }
 
-  fclose(f);
-
-  unsigned offset = 1;
-  if(argc > 2 && std::string(argv[2]) == "--part2") {
-    offset = data.size() / 2;
-  }
+  #ifdef PART2
+    unsigned offset = data.size() / 2;
+  #else
+    unsigned offset = 1;
+  #endif
   
   unsigned sum = 0;
   for(int i = 0; i < data.size(); ++i) {
