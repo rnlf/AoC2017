@@ -4,30 +4,31 @@
 #include "../fileread.h"
 
 
-int main(int argc, char** argv) {
-  Timer timer;
-
-  auto const file = read_file(argv[1]);
-
-  std::vector<unsigned> data;
-  data.reserve(file.size());
-
-  for(int i = 0; file[i] != '\n'; ++i) {
-    data.push_back(file[i] - '0');
+unsigned run(char const* filename) {
+  auto data = read_file(filename);
+  unsigned size = data.size();
+  while(data[size-1] == '\n') {
+    --size;
   }
 
   #ifdef PART2
-    static unsigned const offset = data.size() / 2;
+    unsigned const offset = size / 2;
   #else
-    static unsigned constexpr offset = 1;
+    unsigned const offset = 1;
   #endif
   
   unsigned sum = 0;
-  for(int i = 0; i < data.size(); ++i) {
-    if(data[i] == data[(i+offset) % data.size()]) {
-      sum += data[i];
+  for(int i = 0; i < size; ++i) {
+    if(data[i] == data[(i+offset) % size]) {
+      sum += data[i] - '0';
     }
   }
 
-  printf("%u\n", sum);
+  return sum;
+}
+
+
+int main(int argc, char** argv) {
+  auto results = measure_time(1000, run, argv[1]);
+  printf("%u\n", results[0]);
 }

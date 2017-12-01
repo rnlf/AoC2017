@@ -1,29 +1,40 @@
+#include <type_traits>
 #include <cstdint>
 #include <time.h>
 
+static constexpr uint64_t S_TO_NS = 1000000000;
 
-struct Timer {
-  uint64_t start;
-  static uint64_t constexpr nanoseconds = 1000000000;
-  static auto constexpr clock = CLOCK_MONOTONIC;
+static uint64_t nanoseconds() {
+  timespec r;
+  clock_gettime(CLOCK_MONOTONIC, &r);
+  return r.tv_sec * S_TO_NS + r.tv_nsec;
+}
 
-  static uint64_t constexpr to_nanoseconds(timespec const& t) {
-    return t.tv_sec * nanoseconds + t.tv_nsec;
+
+template<typename F, typename... Args>
+auto measure_time(unsigned count, F f, Args... args) {
+
+  typedef typename std::invoke_result_t<F, Args...> res_type;
+  
+  std::vector<res_type> results(count);
+
+  const auto start = nanoseconds();
+  for(unsigned i = 0; i < count; ++i) {
+    results[i] = f(args...);
   }
 
-  Timer() {
-    timespec r;
-    clock_gettime(clock, &r);
-    start = to_nanoseconds(r);
+  auto const end = nanoseconds();
+  auto const duration = end - start;
+
+  for(int i = 0; i < results.size()-1; ++i) {
+    if(results[i] != results[i+1]) {
+      printf("Tested function returns inconsistent results!\n");
+      abort();
+    }
   }
 
-
-  ~Timer() {
-    timespec r;
-    clock_gettime(clock, &r);
-    auto duration = to_nanoseconds(r) - start;
-
-    printf("Total time: %u.%09us\n", duration / nanoseconds, duration % nanoseconds);
-
-  }
-};
+  printf("Total time: %u.%09us\n", duration / S_TO_NS, duration % S_TO_NS);
+  printf("Per run:    %u.%09us\n", (duration/count) / S_TO_NS, (duration/count) % S_TO_NS);
+  
+  return results;
+}
