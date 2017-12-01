@@ -17,12 +17,20 @@ unsigned run(char const* filename) {
     unsigned const offset = 1;
   #endif
   
+  unsigned const end = size - offset;
+
+
   unsigned sum = 0;
-  for(int i = 0; i < size; ++i) {
-    if(data[i] == data[(i+offset) % size]) {
-      sum += data[i] - '0';
-    }
+  for(int i = 0; i < end; ++i) {
+    auto const c = data[i];
+    sum += !(c ^ data[i+offset]) * (c-'0');
   }
+
+  #ifdef PART2
+    sum <<= 1;
+  #else
+    sum += !(data[size-1] ^ data[0]) * (data[0]-'0');
+  #endif
 
   return sum;
 }
