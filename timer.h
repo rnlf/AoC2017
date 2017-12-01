@@ -12,7 +12,7 @@ static uint64_t nanoseconds() {
 
 
 template<typename F, typename... Args>
-auto measure_time(unsigned count, F f, Args... args) {
+auto measure_time(unsigned const count, F f, Args... args) {
 
   typedef typename std::invoke_result_t<F, Args...> res_type;
   

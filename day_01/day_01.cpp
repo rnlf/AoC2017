@@ -4,12 +4,12 @@
 #include "../fileread.h"
 
 
-unsigned filter(unsigned a, unsigned b) {
+unsigned filter(unsigned const a, unsigned const b) {
   return !(a^b) * (a-unsigned('0'));
 }
 
-unsigned run(char const* filename) {
-  auto data = read_file(filename);
+unsigned run(char const* const filename) {
+  auto const data = read_file(filename);
   unsigned size = data.size();
   while(data[size-1] == '\n') {
     --size;
@@ -39,6 +39,6 @@ unsigned run(char const* filename) {
 
 
 int main(int argc, char** argv) {
-  auto results = measure_time(1000, run, argv[1]);
+  auto const results = measure_time(1000, run, argv[1]);
   printf("%u\n", results[0]);
 }
