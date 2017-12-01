@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
   Timer timer;
 
-  auto file = read_file(argv[1]);
+  auto const file = read_file(argv[1]);
 
   std::vector<unsigned> data;
   data.reserve(file.size());
@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
   }
 
   #ifdef PART2
-    unsigned offset = data.size() / 2;
+    static unsigned const offset = data.size() / 2;
   #else
-    unsigned offset = 1;
+    static unsigned constexpr offset = 1;
   #endif
   
   unsigned sum = 0;
