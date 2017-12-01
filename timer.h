@@ -33,8 +33,8 @@ auto measure_time(unsigned count, F f, Args... args) {
     }
   }
 
-  printf("Total time: %u.%09us\n", duration / S_TO_NS, duration % S_TO_NS);
-  printf("Per run:    %u.%09us\n", (duration/count) / S_TO_NS, (duration/count) % S_TO_NS);
+  printf("Total time: %lu.%09lus\n", duration / S_TO_NS, duration % S_TO_NS);
+  printf("Per run:    %lu.%09lus\n", (duration/count) / S_TO_NS, (duration/count) % S_TO_NS);
   
   return results;
 }
