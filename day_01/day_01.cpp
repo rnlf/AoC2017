@@ -4,6 +4,10 @@
 #include "../fileread.h"
 
 
+unsigned filter(unsigned a, unsigned b) {
+  return !(a^b) * (a-unsigned('0'));
+}
+
 unsigned run(char const* filename) {
   auto data = read_file(filename);
   unsigned size = data.size();
@@ -19,17 +23,15 @@ unsigned run(char const* filename) {
   
   unsigned const end = size - offset;
 
-
   unsigned sum = 0;
   for(int i = 0; i < end; ++i) {
-    auto const c = data[i];
-    sum += !(c ^ data[i+offset]) * (c-'0');
+    sum += filter(data[i], data[i+offset]);
   }
 
   #ifdef PART2
     sum <<= 1;
   #else
-    sum += !(data[size-1] ^ data[0]) * (data[0]-'0');
+    sum += filter(data[size-1], data[0]);
   #endif
 
   return sum;
