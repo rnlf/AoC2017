@@ -6,9 +6,8 @@
 #include <vector>
 #include "../timer.h"
 
-
-int run(char const* filename) {
-
+int
+run(char const* filename) {
   FILE *f = fopen(filename, "r");
   
   uint64_t cur_word = 0;
@@ -26,18 +25,21 @@ int run(char const* filename) {
       cur_word |= cur_char;
 
     } else {
-      
       count += [&] {
         if(cur_word > 0) {
           #ifdef PART2
-          uint8_t *wp = reinterpret_cast<uint8_t*>(&cur_word);
-          std::sort(wp, wp+sizeof(uint64_t));
+          uint8_t * const wp = reinterpret_cast<uint8_t*>(&cur_word);
+          std::sort(wp, wp+sizeof(cur_word));
           #endif
 
+          // Does the word already exist?
           if(std::find(words_in_line.begin(), words_in_line.end(), cur_word) != words_in_line.end()) {
+            
+            // No further tests needed on this line, skip to end
             while(cur_char != '\n') {
               cur_char = fgetc(f);
             }
+
             words_in_line.clear();
             return 0;
           }
@@ -45,10 +47,12 @@ int run(char const* filename) {
           words_in_line.push_back(cur_word);
         }
 
+        // End of line and we're still here, passphrase must be legit!
         if(cur_char == '\n') {
           words_in_line.clear();
           return 1;
         }
+
         return 0;
       }();
 
@@ -60,7 +64,9 @@ int run(char const* filename) {
   return count;
 }
 
-int main(int argc, char** argv) {
+
+int
+main(int argc, char** argv) {
   auto const results = measure_time(1000, run, argv[1]);
   printf("%u\n", results[0]);
 }
