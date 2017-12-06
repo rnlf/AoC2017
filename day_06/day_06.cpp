@@ -16,14 +16,17 @@ struct Memory {
   uint8_t banks[bank_count];
 };
 
-bool operator==(Memory const& a, Memory const& b) {
+
+bool
+operator==(Memory const& a, Memory const& b) {
   return memcmp(&a, &b, sizeof(Memory)) == 0;
 }
 
 
 struct MemoryHash {
-  size_t operator()(Memory const& mem) const {
-    uint64_t const * p = reinterpret_cast<uint64_t const*>(&mem.banks);
+  size_t
+  operator()(Memory const& mem) const {
+    uint64_t const * const p = reinterpret_cast<uint64_t const*>(&mem.banks);
     return p[0] ^ p[1];
   }
 };
@@ -55,7 +58,7 @@ run(char const* filename) {
 
   for(unsigned step = 1; ++step;) {
     start = redistribute(start);
-    auto ins = seen_configurations.insert({start, step});
+    auto const ins = seen_configurations.insert({start, step});
     if(!ins.second) {
       #ifdef PART2
         return step - ins.first->second;

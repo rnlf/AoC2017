@@ -1,23 +1,12 @@
 #include <vector>
 #include <cstdio>
 #include "../timer.h"
+#include "../fileread.h"
 
 
 std::vector<int>
 read_jumps(char const* filename) {
-  std::vector<int> jumps;
-  jumps.reserve(1024);
-
-  FILE* f = fopen(filename, "r");
-  
-  int tmp;
-  while(fscanf(f, " %d", &tmp) > 0) {
-    jumps.push_back(tmp);
-  }
-
-  fclose(f);
-
-  return jumps;
+  return read_numbers<int>(filename);
 }
 
 
