@@ -1,38 +1,38 @@
+#include <algorithm>
 #include <numeric>
-#include <utility>
 #include <vector>
 #include <cstdio>
+#include "../timer.h"
 
 struct Layer {
-  int depth;
-  int range;
+  int16_t depth;
+  int16_t range;
 };
 
 
-int
-scanner_pos(Layer const& l, int const time) {
-  int const pos = time % (l.range - 1);
-  int const sec = time / (l.range - 1);
-  if(sec % 2 == 1) {
-    return l.range - 1 - pos;
+bool
+scanner_zero(Layer const& l, int const time) {
+  return !(time % (2 * (l.range - 1)));
+}
+
+
+bool
+detected(std::vector<Layer> const& layers, int const delay) {
+  for(auto const& l: layers) {
+    if(scanner_zero(l, l.depth + delay)) {
+      return true;
+    }
   }
-  return pos;
+
+  return false;
 }
 
 
-template<typename S, typename T>
-std::pair<S, T>
-operator+(std::pair<S, T> const& s, std::pair<S,T> const& t) {
-  return {s.first + t.first, s.second + t.second};
-}
-
-
-std::pair<int, int>
+int
 severity(std::vector<Layer> const& layers, int const delay) {
-  return std::accumulate(layers.begin(), layers.end(), std::pair<int,int> {0, 0},
+  return std::accumulate(layers.begin(), layers.end(), 0,
     [delay](auto const& p, auto const& l) {
-      int const mul = !scanner_pos(l, l.depth + delay);
-      return p + std::pair<int,int> {mul * l.depth * l.range, mul};
+      return p + (scanner_zero(l, l.depth + delay) ? (l.depth * l.range) : 0);
     }
   );
 }
@@ -45,7 +45,7 @@ read_input(char const* const input) {
   std::vector<Layer> layers;
   for(;;) {
     Layer l;
-    int const c = fscanf(f, "%d: %d ", &l.depth, &l.range);
+    int const c = fscanf(f, "%hd: %hd ", &l.depth, &l.range);
     if(c != 2) {
       break;
     }
@@ -59,17 +59,27 @@ read_input(char const* const input) {
 
 
 int
+part2(std::vector<Layer> const& layers) {
+  std::vector<Layer> l2(layers);
+
+  // This reduces the time needed for the search by 26%!
+  std::sort(l2.begin(), l2.end(), [](auto const& a, auto const& b) { return a.range < b.range; });
+
+  for(int i = 0;; ++i) {
+    if(!detected(l2, i)) {
+      return i;
+    }
+  }
+}
+
+
+int
 main(int argc, char** argv) {
   auto const layers = read_input(argv[1]);
 
-  printf("%d\n", severity(layers, 0).first);
+  printf("%d\n", severity(layers, 0));
 
-  for(int i = 0;; ++i) {
-    int const c = severity(layers, i).second;
-    
-    if(c == 0) {
-      printf("%d\n", i);
-      break;
-    }
-  }
+  auto const res = measure_time(100, &part2, layers);
+  printf("%d\n", res[0]);
+
 }
