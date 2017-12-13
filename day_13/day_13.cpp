@@ -9,23 +9,23 @@ struct Layer {
 
 
 int
-scanner_pos(Layer const& l, int time) {
-  int pos = time % (l.range - 1);
-  int sec = time / (l.range - 1);
+scanner_pos(Layer const& l, int const time) {
+  int const pos = time % (l.range - 1);
+  int const sec = time / (l.range - 1);
   if(sec % 2 == 1) {
-    pos = l.range - 1 - pos;
+    return l.range - 1 - pos;
   }
   return pos;
 }
 
 
 std::pair<int, int>
-severity(std::vector<Layer> const& layers, int delay) {
+severity(std::vector<Layer> const& layers, int const delay) {
   int sev = 0;
   int caught = 0;
 
   for(auto const& l: layers) {
-    int pos = scanner_pos(l, l.depth + delay);
+    int const pos = scanner_pos(l, l.depth + delay);
 
     if(pos == 0) {
       caught++;
@@ -38,13 +38,13 @@ severity(std::vector<Layer> const& layers, int delay) {
 
 
 std::vector<Layer>
-read_input(char const* input) {
+read_input(char const* const input) {
   FILE* f = fopen(input, "r");
 
   std::vector<Layer> layers;
   for(;;) {
     Layer l;
-    int c = fscanf(f, "%d: %d ", &l.depth, &l.range);
+    int const c = fscanf(f, "%d: %d ", &l.depth, &l.range);
     if(c != 2) {
       break;
     }
@@ -59,12 +59,12 @@ read_input(char const* input) {
 
 int
 main(int argc, char** argv) {
-  auto layers = read_input(argv[1]);
+  auto const layers = read_input(argv[1]);
 
   printf("%d\n", severity(layers, 0).first);
 
   for(int i = 0;; ++i) {
-    auto [s, c] = severity(layers, i);
+    int const c = severity(layers, i).second;
     
     if(c == 0) {
       printf("%d\n", i);
