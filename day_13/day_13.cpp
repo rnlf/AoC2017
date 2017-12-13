@@ -1,3 +1,4 @@
+#include <numeric>
 #include <utility>
 #include <vector>
 #include <cstdio>
@@ -19,21 +20,21 @@ scanner_pos(Layer const& l, int const time) {
 }
 
 
+template<typename S, typename T>
+std::pair<S, T>
+operator+(std::pair<S, T> const& s, std::pair<S,T> const& t) {
+  return {s.first + t.first, s.second + t.second};
+}
+
+
 std::pair<int, int>
 severity(std::vector<Layer> const& layers, int const delay) {
-  int sev = 0;
-  int caught = 0;
-
-  for(auto const& l: layers) {
-    int const pos = scanner_pos(l, l.depth + delay);
-
-    if(pos == 0) {
-      caught++;
-      sev += l.depth * l.range;
+  return std::accumulate(layers.begin(), layers.end(), std::pair<int,int> {0, 0},
+    [delay](auto const& p, auto const& l) {
+      int const mul = !scanner_pos(l, l.depth + delay);
+      return p + std::pair<int,int> {mul * l.depth * l.range, mul};
     }
-  }
-  
-  return {sev, caught};
+  );
 }
 
 

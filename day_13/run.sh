@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-CXX=g++
+CXX=clang++
 
 #GDB="gdb --args"
 
