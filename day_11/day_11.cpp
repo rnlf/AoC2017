@@ -2,8 +2,15 @@
 #include <cstdint>
 #include <cstdio>
 
-uint16_t constexpr make_dir(uint8_t a, uint8_t b) {
+uint16_t
+constexpr make_dir(uint8_t a, uint8_t b) {
   return a << 8 | b;
+}
+
+
+int
+constexpr distance(int x, int y) {
+  return std::max(abs(x+y), std::max(abs(x), abs(y)));
 }
 
 
@@ -52,11 +59,11 @@ int main(int argc, char **argv) {
       break;
     }
 
-    maxd = std::max(std::max(abs(x), abs(y)), maxd);
+    maxd = std::max(maxd, distance(x, y));
   }
 
   fclose(f);
 
-  printf("%d\n", std::max(abs(x), abs(y)));
+  printf("%d, %d, %d\n", x, y, distance(x, y));
   printf("%d\n", maxd);
 }
