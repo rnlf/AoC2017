@@ -14,7 +14,8 @@ void process(uint8_t *data, unsigned pos, unsigned len) {
 }
 
 
-KnotHash knot_hash(std::vector<uint8_t> input) {
+template<typename T>
+KnotHash knot_hash(T input) {
   input.push_back(17);
   input.push_back(31);
   input.push_back(73);
