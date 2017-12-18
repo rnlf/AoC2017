@@ -2,15 +2,7 @@
 #include <cstdio>
 #include <cstdint>
 
-void process(uint8_t *data, unsigned pos, unsigned len) {
-  for(unsigned i = 0; i < len / 2; ++i) {
-    unsigned i1 = (pos + i) % 256;
-    unsigned i2 = (pos + len - i - 1) % 256;
-    uint8_t tmp = data[i1];
-    data[i1] = data[i2];
-    data[i2] = tmp;
-  }
-}
+#include "knot_hash.h"
 
 
 #ifndef PART2
@@ -47,12 +39,6 @@ std::vector<uint8_t> read_input(char const* filename) {
 
   fclose(f);
 
-  dat.push_back(17);
-  dat.push_back(31);
-  dat.push_back(73);
-  dat.push_back(47);
-  dat.push_back(23);
-
   return dat;
 }
 #endif
@@ -60,39 +46,27 @@ std::vector<uint8_t> read_input(char const* filename) {
 
 int main(int argc, char ** argv) {
 
-  uint8_t data[256];
-  for(unsigned i = 0; i < 256; ++i) {
-    data[i] = uint8_t(i);
-  }
-
-  unsigned pos = 0;
-  unsigned skip = 0;
 
   auto input = read_input(argv[1]);
 
-  #ifdef PART2
-    for(int turn = 0; turn < 64; ++turn) {
-  #endif
-
-      for(auto const len: input) {
-        process(data, pos, len);
-        pos = (pos + skip + len) % 256;
-        ++skip;
-      }
-
-  #ifdef PART2
+  #ifndef PART2
+    uint8_t data[256];
+    unsigned pos = 0;
+    unsigned skip =0;
+    for(unsigned i = 0; i < 256; ++i) {
+      data[i] = uint8_t(i);
     }
-  #endif
-
-  #ifdef PART2
-    for(int i=0; i < 16; ++i) {
-      uint8_t d = 0;
-      for(int k = 0; k < 16; ++k) {
-        d ^= data[16*i+k];
-      }
-      printf("%02x", d);
+    for(auto const len: input) {
+      process(data, pos, len);
+      pos = (pos + skip + len) % 256;
+      ++skip;
     }
-  #else
     printf("%u\n", unsigned(data[0]) * unsigned(data[1]));
+  #else
+    KnotHash hash = knot_hash(input);
+    for(int i = 0; i < 16; ++i) {
+      printf("%02x", hash.data[i]);
+    }
+    printf("\n");
   #endif
 }
