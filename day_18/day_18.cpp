@@ -1,3 +1,4 @@
+#include <queue>
 #include <cstdlib>
 #include <vector>
 #include <cstdio>
@@ -59,6 +60,88 @@ void set_reg(int64_t *regs, Operand const& op, int64_t value) {
 }
 
 
+enum State {
+  Running,
+  Waiting,
+  Terminated
+};
+
+
+struct Process {
+  std::vector<Instruction> const& code;
+  std::queue<int64_t> recv_queue;
+  std::queue<int64_t> *send_queue;
+  int64_t regs[26] = {0};
+  int pc = 0;
+  int id;
+  int sent = 0;
+
+  Process(int id, std::vector<Instruction> const& code) 
+    : code(code)
+    , id(id) {
+    regs['p'-'a'] = id;
+  }
+
+  void run() {
+    if(pc < 0 || pc >= code.size()) {
+      state = Terminated;
+    }
+    state = Running;
+    for(;;) {
+      auto const& instr = code[pc];
+      switch(instr.type) {
+      case snd:
+        //sound = get(regs, instr.a);
+        ++sent;
+        send_queue->push(get(regs, instr.a));
+        break;
+
+      case set:
+        set_reg(regs, instr.a, get(regs, instr.b));
+        break;
+
+      case add:
+        set_reg(regs, instr.a, get(regs, instr.a) + get(regs, instr.b));
+        break;
+
+      case mul:
+        set_reg(regs, instr.a, get(regs, instr.a) * get(regs, instr.b));
+        break;
+
+      case mod:
+        set_reg(regs, instr.a, get(regs, instr.a) % get(regs, instr.b));
+        break;
+
+      case jgz:
+        if(get(regs, instr.a) > 0) {
+          pc += get(regs, instr.b) - 1;
+        }
+        break;
+
+      case rcv:
+        if(recv_queue.empty()) {
+          state = Waiting;
+          return;
+        }
+
+        set_reg(regs, instr.a, recv_queue.front());
+        recv_queue.pop();
+
+        break;
+      }
+      ++pc;
+    }
+  }
+
+
+  bool runnable() const {
+    return (state == Running) || (state == Waiting && !recv_queue.empty());
+  }
+
+  State state = Running;
+};
+
+
 int main(int argc, char ** argv) {
   std::vector<Instruction> code = {
     {set, 'i',      31},
@@ -104,46 +187,25 @@ int main(int argc, char ** argv) {
     {jgz, 'a',     -19}
   };
 
-  int pc = 0;
-  int64_t regs[26] = {0};
-  int sound=0;
+  Process processes[] = {
+    {0, code},
+    {1, code}
+  };
+  processes[0].send_queue = &processes[1].recv_queue;
+  processes[1].send_queue = &processes[0].recv_queue;
+
   for(;;) {
-    auto const& instr = code[pc];
-    switch(instr.type) {
-    case snd:
-      sound = get(regs, instr.a);
-      break;
-
-    case set:
-      set_reg(regs, instr.a, get(regs, instr.b));
-      break;
-
-    case add:
-      set_reg(regs, instr.a, get(regs, instr.a) + get(regs, instr.b));
-      break;
-
-    case mul:
-      set_reg(regs, instr.a, get(regs, instr.a) * get(regs, instr.b));
-      break;
-
-    case mod:
-      set_reg(regs, instr.a, get(regs, instr.a) % get(regs, instr.b));
-      break;
-
-    case jgz:
-      if(get(regs, instr.a) > 0) {
-        pc += get(regs, instr.b) - 1;
-      }
-      break;
-
-    case rcv:
-      if(get(regs, instr.a) > 0) {
-        printf("%d\n", sound);
-        exit(0);
-      }
+    if(!(processes[0].runnable() || processes[1].runnable())) {
       break;
     }
-    ++pc;
+
+    for(int i=0; i < 2; ++i) {
+      if(processes[i].runnable()) {
+        processes[i].run();
+      }
+    }
   }
+
+  printf("%d\n", processes[1].sent);
 
 }
